@@ -1,4 +1,4 @@
-// Seeds the real "friendly-trails" Firestore database with the demo trails.
+// Seeds the real "friendly-trail" Firestore database with the demo trails.
 // It only creates trails that don't exist yet, so it never overwrites live conditions.
 //
 // Uses Application Default Credentials (`gcloud auth application-default login`).
@@ -8,7 +8,7 @@ import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { GeoPoint, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { buildTrails } from "./trail-data.mjs";
 
-const PROJECT_ID = "friendly-trails";
+const PROJECT_ID = process.env.FIREBASE_PROJECT ?? "friendly-trail";
 
 if (process.env.FIRESTORE_EMULATOR_HOST) {
   console.error("FIRESTORE_EMULATOR_HOST is set. Use `npm run seed` for the emulator instead.");
