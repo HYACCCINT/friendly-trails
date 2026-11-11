@@ -1,0 +1,166 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: trails
+// Document ID: slug, e.g. "storm-king-loop" (lowercase letters, digits, hyphens)
+// Fields (written by the seed script with the Admin SDK, never created by clients):
+//   - name, region, summary, description: string
+//   - difficulty: string ('easy' | 'moderate' | 'hard')
+//   - distanceKm, elevationGainM, durationMin: number
+//   - dogFriendly, loop: bool
+//   - highlights: list<string>
+//   - start: geopoint, route: list<geopoint>, elevation: list<number>
+//   - status: string ('open' | 'caution' | 'closed')      <- clients may update
+//   - statusNote: string (max 140 chars)                   <- clients may update
+//   - lastReportAt: timestamp | null                       <- clients may update
+//   - lastReportId: string | null (ID of the matching doc in /reports) <- clients may update
+//
+// Collection: reports
+// Document ID: auto ID
+// Fields (all required, immutable, write-once):
+//   - trailId: string (an existing trail ID)
+//   - status: string ('open' | 'caution' | 'closed')
+//   - note: string (max 140 chars)
+//   - uid: string (the reporter, must equal request.auth.uid)
+//   - createdAt: timestamp (server time)
+//
+// Collection: users/{uid}/saved
+// Document ID: trail ID
+// Fields (all required, write-once; copies of the trail so the list works offline):
+//   - trailId: string (equals the document ID)
+//   - name, region: string (must match the trail)
+//   - distanceKm: number, difficulty: string (must match the trail)
+//   - savedAt: timestamp (server time)
+//
+// Access model (v1, "everything in the browser"):
+//   - Trails are public reference content: anyone can read them, signed in or not.
+//   - Signed-in users can change a trail's status fields only, and only together
+//     with a new report document in the same batched write.
+//   - Rules cannot rate-limit or verify reports. That limitation is intentional for
+//     the talk: v3 moves reporting into a Server Function with privileged checks.
+//   - Saved trails are private to their owner.
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =============================================================
+    // Helper Functions
+    // =============================================================
+
+    // Signed in with a real provider (the app only offers Google sign-in).
+    function isSignedIn() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidStatus(status) {
+      return status in ['open', 'caution', 'closed'];
+    }
+
+    function isValidNote(note) {
+      return note is string && note.size() <= 140;
+    }
+
+    function isValidTrailId(trailId) {
+      return trailId is string
+        && trailId.size() > 0
+        && trailId.size() <= 64
+        && trailId.matches('^[a-z0-9-]+$');
+    }
+
+    function trailPath(trailId) {
+      return /databases/$(database)/documents/trails/$(trailId);
+    }
+
+    function reportPath(reportId) {
+      return /databases/$(database)/documents/reports/$(reportId);
+    }
+
+    // =============================================================
+    // Domain Validators
+    // =============================================================
+
+    // A status change must only touch the status fields, use server time,
+    // and point at a brand-new report (created in the same batch) that says
+    // the same thing and was written by the same user.
+    function isValidStatusReport(trailId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'statusNote', 'lastReportAt', 'lastReportId'])
+        && isValidStatus(data.status)
+        && isValidNote(data.statusNote)
+        && data.lastReportAt == request.time
+        && data.lastReportId is string
+        && data.lastReportId.size() > 0
+        && data.lastReportId.size() <= 64
+        && !exists(reportPath(data.lastReportId))
+        && getAfter(reportPath(data.lastReportId)).data.trailId == trailId
+        && getAfter(reportPath(data.lastReportId)).data.uid == request.auth.uid
+        && getAfter(reportPath(data.lastReportId)).data.status == data.status
+        && getAfter(reportPath(data.lastReportId)).data.note == data.statusNote;
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['trailId', 'status', 'note', 'uid', 'createdAt'])
+        && data.keys().hasOnly(['trailId', 'status', 'note', 'uid', 'createdAt'])
+        && isValidTrailId(data.trailId)
+        && exists(trailPath(data.trailId))
+        && isValidStatus(data.status)
+        && isValidNote(data.note)
+        && data.uid == request.auth.uid
+        && data.createdAt == request.time;
+    }
+
+    function isValidSavedTrail(trailId) {
+      let data = request.resource.data;
+      let trail = get(trailPath(trailId)).data;
+      return data.keys().hasAll(['trailId', 'name', 'region', 'distanceKm', 'difficulty', 'savedAt'])
+        && data.keys().hasOnly(['trailId', 'name', 'region', 'distanceKm', 'difficulty', 'savedAt'])
+        && data.trailId == trailId
+        && data.name == trail.name
+        && data.region == trail.region
+        && data.distanceKm == trail.distanceKm
+        && data.difficulty == trail.difficulty
+        && data.savedAt == request.time;
+    }
+
+    // =============================================================
+    // Rules
+    // =============================================================
+
+    match /trails/{trailId} {
+      // Public by design: the talk is about pages that anyone (and any crawler) can read.
+      allow read: if true;
+      // Clients may only report conditions. Trails are created and edited with the Admin SDK.
+      allow update: if isValidStatusReport(trailId);
+    }
+
+    match /reports/{reportId} {
+      // Write-once. Reports are never read, edited or deleted from the browser.
+      allow create: if isSignedIn()
+        && reportId.size() <= 64
+        && isValidReport(request.resource.data);
+    }
+
+    match /users/{userId}/saved/{trailId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && isValidTrailId(trailId)
+        && isValidSavedTrail(trailId);
+      // No updates: unsaving and saving again creates a fresh document.
+      allow delete: if isOwner(userId);
+    }
+
+    // Everything else is denied by default.
+  }
+}

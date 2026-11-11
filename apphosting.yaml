@@ -1,0 +1,13 @@
+# Firebase App Hosting configuration for Friendly Trails.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Keep one instance warm so the first request on stage isn't a cold start.
+  # Costs a little while idle: set it back to 0 after the talk.
+  minInstances: 1
+  maxInstances: 4
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+
+# The public web config is read from .env.production at build time.

@@ -1,0 +1,37 @@
+{
+  "name": "friendly-trails",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo app for the talk \"When (not) to use server components in interactive web apps\".",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed.mjs",
+    "seed:production": "node scripts/seed-production.mjs",
+    "emulators": "npx -y firebase-tools@15.35.0 emulators:start --project demo-friendly-trails --only auth,firestore",
+    "dev:all": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && npm run dev\"",
+    "prod:local": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true next build && next start\"",
+    "check:rules": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore \"npm run seed && node scripts/check-rules.mjs\""
+  },
+  "dependencies": {
+    "firebase": "13.2.0",
+    "firebase-admin": "14.5.0",
+    "leaflet": "1.9.4",
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-leaflet": "5.0.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "1.9.22",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}

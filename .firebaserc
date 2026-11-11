@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "friendly-trails",
+    "local": "demo-friendly-trails"
+  }
+}
