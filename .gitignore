@@ -22,3 +22,6 @@ pglite-debug.log*
 # misc
 .DS_Store
 npm-debug.log*
+
+# SPA build output (vite build, part of npm run build)
+public/spa/

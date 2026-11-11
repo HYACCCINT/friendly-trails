@@ -8,15 +8,17 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "vite build && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "seed": "node scripts/seed.mjs",
     "seed:production": "node scripts/seed-production.mjs",
     "emulators": "npx -y firebase-tools@15.35.0 emulators:start --project demo-friendly-trails --only auth,firestore",
-    "dev:all": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && npm run dev\"",
-    "prod:local": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true next build && next start\"",
-    "check:rules": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore \"npm run seed && node scripts/check-rules.mjs\""
+    "dev:all": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && vite build --mode development && npm run dev\"",
+    "prod:local": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore --ui \"npm run seed && NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true npm run build && next start\"",
+    "check:rules": "npx -y firebase-tools@15.35.0 emulators:exec --project demo-friendly-trails --only auth,firestore \"npm run seed && node scripts/check-rules.mjs\"",
+    "build:spa": "vite build",
+    "dev:spa": "vite"
   },
   "dependencies": {
     "firebase": "13.2.0",
@@ -25,13 +27,16 @@
     "next": "16.4.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-leaflet": "5.0.0"
+    "react-leaflet": "5.0.0",
+    "react-router": "7.18.4"
   },
   "devDependencies": {
     "@types/leaflet": "1.9.22",
     "@types/node": "26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "typescript": "5.9.3"
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "5.9.3",
+    "vite": "8.3.5"
   }
 }

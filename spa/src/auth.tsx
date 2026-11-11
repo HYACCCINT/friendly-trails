@@ -1,8 +1,6 @@
-"use client";
-
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth";
 import { getClientAuth } from "@/lib/firebase/client";
 
 interface AuthState {
@@ -15,7 +13,7 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-// v1: sign-in state lives only in the browser. The server never knows who you are.
+// Sign-in state lives only in the browser. There's no server that needs to know who you are.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
@@ -40,9 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext value={{ user, ready, signIn, signOut: () => signOut(getClientAuth()) }}>
-      {children}
-    </AuthContext>
+    <AuthContext value={{ user, ready, signIn, signOut: () => signOut(getClientAuth()) }}>{children}</AuthContext>
   );
 }
 

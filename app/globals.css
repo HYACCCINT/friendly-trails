@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Friendly Trails: shared styles for every version (v1, v2, v3).
+   Friendly Trails: shared styles for every version (SPA, v2, v3).
    Same design everywhere, so the only difference on stage is where things render.
    ========================================================================== */
 
@@ -1200,7 +1200,7 @@ input[type="range"] {
   box-shadow: var(--shadow);
 }
 
-.version-card--v1 {
+.version-card--spa {
   --version-color: var(--v1);
 }
 

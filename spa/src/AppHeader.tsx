@@ -1,37 +1,29 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, NavLink } from "react-router";
 import { BrandMark } from "@/components/BrandMark";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./auth";
 
 const NAV = [
-  { href: "/v1", label: "Explore" },
-  { href: "/v1/saved", label: "Saved" },
+  { to: "/", label: "Explore" },
+  { to: "/saved", label: "Saved" },
 ];
 
 export function AppHeader() {
-  const pathname = usePathname();
   const { user, ready, signIn, signOut } = useAuth();
   const name = user?.displayName ?? user?.email ?? "Hiker";
 
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link href="/v1" className="brand">
+        <Link to="/" className="brand">
           <BrandMark />
           <span>Friendly Trails</span>
         </Link>
         <nav aria-label="Main" className="site-nav">
           {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="site-nav__link"
-              aria-current={pathname === item.href ? "page" : undefined}
-            >
+            // NavLink sets aria-current="page" on the active link, which the shared styles use.
+            <NavLink key={item.to} to={item.to} end className="site-nav__link">
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
         <div className="auth">

@@ -3,10 +3,10 @@ import { BrandMark } from "@/components/BrandMark";
 
 const VERSIONS = [
   {
-    id: "v1",
-    href: "/v1",
+    id: "spa",
+    href: "/spa",
     title: "SPA",
-    body: "Client components everywhere. The browser signs in, reads, listens and writes to Firestore directly.",
+    body: "A strict single-page app (Vite + React Router). One HTML file; the browser signs in, reads, listens and writes to Firestore directly.",
     ready: true,
   },
   {
@@ -41,7 +41,16 @@ export default function Home() {
         <ul className="version-list">
           {VERSIONS.map((version) => (
             <li key={version.id} className={`version-card version-card--${version.id}`}>
-              <h2>{version.ready ? <Link href={version.href}>{version.title}</Link> : version.title}</h2>
+              <h2>
+                {/* The SPA is a separate app (static files), not a Next.js route, so it gets a plain link. */}
+                {version.id === "spa" ? (
+                  <a href={version.href}>{version.title}</a>
+                ) : version.ready ? (
+                  <Link href={version.href}>{version.title}</Link>
+                ) : (
+                  version.title
+                )}
+              </h2>
               <p>{version.body}</p>
               {!version.ready && <p className="version-card__soon">Coming soon</p>}
             </li>

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { TrailFilters } from "@/components/interactive/TrailFilters";
@@ -10,12 +8,13 @@ import { toTrail } from "@/lib/trails/convert";
 import { DEFAULT_FILTERS, filterTrails } from "@/lib/trails/filter";
 import type { Trail } from "@/lib/trails/types";
 
-export default function ExplorePage() {
+export function ExplorePage() {
   const [trails, setTrails] = useState<Trail[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-  // v1: the data loads in the browser, after the page has already rendered (as a spinner).
+  // The data loads in the browser, after the JavaScript has loaded and rendered a spinner.
+  // The listener keeps the list live: a closure reported anywhere shows up here.
   useEffect(() => {
     const trailsQuery = query(collection(getClientDb(), "trails"), orderBy("name"));
     return onSnapshot(
@@ -25,6 +24,7 @@ export default function ExplorePage() {
     );
   }, []);
 
+  // Filtering is a plain function over data the browser already has: no request at all.
   const visible = trails ? filterTrails(trails, filters) : [];
 
   return (
@@ -50,8 +50,7 @@ export default function ExplorePage() {
             <ul className="trail-grid">
               {visible.map((trail) => (
                 <li key={trail.id}>
-                  {/* Full prefetch, so trail pages also open offline (the default skips dynamic routes). */}
-                  <TrailCard trail={trail} href={`/v1/trails/${trail.id}`} prefetch />
+                  <TrailCard trail={trail} href={`/trails/${trail.id}`} />
                 </li>
               ))}
             </ul>

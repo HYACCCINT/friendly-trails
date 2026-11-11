@@ -1,13 +1,11 @@
-"use client";
-
 import { useState, type FormEvent } from "react";
 import { collection, doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { getClientDb } from "@/lib/firebase/client";
 import { STATUS_LABEL } from "@/lib/trails/format";
 import { STATUSES, type TrailStatus } from "@/lib/trails/types";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./auth";
 
-// v1: the browser writes the report and updates the trail itself, in one batch.
+// The browser writes the report and updates the trail itself, in one batch.
 // Security rules check the shape of the write, but they can't verify the report or rate-limit it.
 export function ReportConditionForm({ trailId, currentStatus }: { trailId: string; currentStatus: TrailStatus }) {
   const { user, signIn } = useAuth();

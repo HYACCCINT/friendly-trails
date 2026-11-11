@@ -8,7 +8,7 @@ import { STATUSES, type TrailStatus } from "@/lib/trails/types";
 
 // v2: every write is a Server Function. It runs with the Admin SDK, so Firestore Security
 // Rules don't apply: each function has to check who is calling and what they send, just
-// like firestore.rules does for v1. Anyone can call a Server Function directly, so never
+// like firestore.rules does for the SPA. Anyone can call a Server Function directly, so never
 // trust that the form was the only way in.
 
 const TRAIL_ID = /^[a-z0-9-]+$/;

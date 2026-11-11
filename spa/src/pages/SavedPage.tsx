@@ -1,20 +1,18 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router";
 import { collection, onSnapshot } from "firebase/firestore";
 import { Spinner } from "@/components/ui/Spinner";
 import { getClientDb } from "@/lib/firebase/client";
 import { toSavedTrail } from "@/lib/trails/convert";
 import { DIFFICULTY_LABEL, formatDistance } from "@/lib/trails/format";
 import type { SavedTrail } from "@/lib/trails/types";
-import { useAuth } from "../_components/AuthProvider";
+import { useAuth } from "../auth";
 
-export default function SavedPage() {
+export function SavedPage() {
   const { user, ready, signIn } = useAuth();
   const [saved, setSaved] = useState<SavedTrail[] | null>(null);
 
-  // v1: thanks to Firestore's persistent cache, this list also works offline.
+  // Firestore's persistent cache keeps this list available offline.
   useEffect(() => {
     if (!user) return;
     return onSnapshot(collection(getClientDb(), "users", user.uid, "saved"), (snapshot) => {
@@ -45,7 +43,7 @@ export default function SavedPage() {
       ) : saved.length === 0 ? (
         <div className="empty">
           <p>No saved trails yet.</p>
-          <Link href="/v1" className="button button--ghost">
+          <Link to="/" className="button button--ghost">
             Explore trails
           </Link>
         </div>
@@ -54,9 +52,7 @@ export default function SavedPage() {
           {saved.map((item) => (
             <li key={item.trailId} className="saved-item">
               <div>
-                <Link href={`/v1/trails/${item.trailId}`} prefetch>
-                  {item.name}
-                </Link>
+                <Link to={`/trails/${item.trailId}`}>{item.name}</Link>
                 <p className="saved-item__meta">
                   {item.region} · {formatDistance(item.distanceKm)} · {DIFFICULTY_LABEL[item.difficulty]}
                 </p>

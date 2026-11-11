@@ -1,5 +1,3 @@
-import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
 import {
   connectFirestoreEmulator,
   getFirestore,
@@ -8,30 +6,16 @@ import {
   persistentMultipleTabManager,
   type Firestore,
 } from "firebase/firestore";
-import { firebaseConfig, usingEmulators } from "./config";
+import { getClientAuth, getFirebaseApp, usingEmulators } from "./client-auth";
 
 // The browser-side Firebase setup.
 // Call these getters from effects and event handlers only, so they run in the browser.
+// Auth lives in client-auth.ts, so sign-in-only code can skip the Firestore SDK.
 
-export { usingEmulators };
+export { getClientAuth, getFirebaseApp, usingEmulators };
 
 // Keep one instance per page, even across hot reloads in development.
-const cache = ((globalThis as { __friendlyTrails?: { auth?: Auth; db?: Firestore } }).__friendlyTrails ??= {});
-
-export function getFirebaseApp(): FirebaseApp {
-  if (getApps().length) return getApp();
-  const config = firebaseConfig();
-  return config ? initializeApp(config) : initializeApp();
-}
-
-export function getClientAuth(): Auth {
-  if (!cache.auth) {
-    const auth = getAuth(getFirebaseApp());
-    if (usingEmulators) connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    cache.auth = auth;
-  }
-  return cache.auth;
-}
+const cache = ((globalThis as { __friendlyTrails?: { db?: Firestore } }).__friendlyTrails ??= {});
 
 export function getClientDb(): Firestore {
   if (!cache.db) {

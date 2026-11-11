@@ -18,7 +18,7 @@ interface SaveTrailButtonProps {
   initialSaved?: boolean;
 }
 
-// Shared by v1 and v3: writes go straight from the browser to Firestore. Security rules
+// Shared by the SPA and v3: writes go straight from the browser to Firestore. Security rules
 // decide what's allowed, and latency compensation makes the button flip instantly, even offline.
 export function SaveTrailButton({ trail, uid, ready, onSignIn, initialSaved = false }: SaveTrailButtonProps) {
   const [saved, setSaved] = useState(initialSaved);

@@ -16,7 +16,7 @@ const TRAIL_ID = /^[a-z0-9-]+$/;
  *
  * Server Functions are public endpoints, so check everything: who's calling, and what they sent.
  * (In a real app, also remove the browser's report path from firestore.rules so this is the
- * only way in. It stays here because v1 still writes reports from the browser.)
+ * only way in. It stays here because the SPA still writes reports from the browser.)
  */
 export async function reportCondition(
   trailId: string,

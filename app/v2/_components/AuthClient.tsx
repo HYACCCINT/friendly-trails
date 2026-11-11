@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { GoogleAuthProvider, onIdTokenChanged, signInWithPopup, signOut } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { readSessionCookie, writeSessionCookie } from "@/lib/auth/cookie";
-import { getClientAuth } from "@/lib/firebase/client";
+import { getClientAuth } from "@/lib/firebase/client-auth";
 
 // v2's unavoidable client code: Firebase sign-in only works in the browser. The server can't
 // open a Google popup, so the browser signs in, then copies the ID token into a cookie that

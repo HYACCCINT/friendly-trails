@@ -1,11 +1,10 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { Link, useParams } from "react-router";
 import { doc, onSnapshot } from "firebase/firestore";
 import { ElevationProfileInteractive } from "@/components/interactive/ElevationProfileInteractive";
-import { TrailMapLazy } from "@/components/interactive/TrailMapLazy";
+// A regular import: in a strict SPA nothing renders on the server, so Leaflet needs no special handling.
+// The map ships in the main bundle, which also means it works offline once the app has loaded.
+import TrailMap from "@/components/interactive/TrailMap";
 import { StatusBadge } from "@/components/trail/StatusBadge";
 import { TrailStats } from "@/components/trail/TrailStats";
 import { Spinner } from "@/components/ui/Spinner";
@@ -13,8 +12,8 @@ import { getClientDb } from "@/lib/firebase/client";
 import { toTrail } from "@/lib/trails/convert";
 import { formatRelative } from "@/lib/trails/format";
 import type { Trail } from "@/lib/trails/types";
-import { ReportConditionForm } from "../../_components/ReportConditionForm";
-import { SaveTrailButton } from "../../_components/SaveTrailButton";
+import { ReportConditionForm } from "../ReportConditionForm";
+import { SaveTrailButton } from "../SaveTrailButton";
 
 type PageState =
   | { kind: "loading" }
@@ -22,12 +21,12 @@ type PageState =
   | { kind: "error"; message: string }
   | { kind: "ready"; trail: Trail; syncing: boolean };
 
-export default function TrailPage() {
-  const { id } = useParams<{ id: string }>();
+export function TrailPage() {
+  const { id = "" } = useParams();
   const [state, setState] = useState<PageState>({ kind: "loading" });
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
-  // v1: subscribe to the trail from the browser. Conditions update live for everyone,
+  // Subscribe to the trail from the browser. Conditions update live for everyone,
   // and our own reports show up instantly thanks to latency compensation.
   useEffect(
     () =>
@@ -46,8 +45,8 @@ export default function TrailPage() {
   );
 
   const trailName = state.kind === "ready" ? state.trail.name : null;
-  // The server-rendered HTML only ever says "Friendly Trails". The real title appears after
-  // the data loads, so only people (and crawlers) that run JavaScript ever see it.
+  // index.html only ever says "Friendly Trails". The real title appears after the data loads,
+  // so only people (and crawlers) that run JavaScript ever see it.
   useEffect(() => {
     if (trailName) document.title = `${trailName} · Friendly Trails`;
   }, [trailName]);
@@ -59,7 +58,7 @@ export default function TrailPage() {
         <h1>{state.kind === "missing" ? "Trail not found" : "Couldn’t load this trail"}</h1>
         {state.kind === "error" && <p>{state.message}</p>}
         <p>
-          <Link href="/v1">Back to all trails</Link>
+          <Link to="/">Back to all trails</Link>
         </p>
       </div>
     );
@@ -76,7 +75,7 @@ export default function TrailPage() {
     <article className="trail">
       <header className="trail__header">
         <p className="eyebrow">
-          <Link href="/v1">All trails</Link>
+          <Link to="/">All trails</Link>
           <span aria-hidden="true">/</span>
           <span>{trail.region}</span>
         </p>
@@ -90,7 +89,7 @@ export default function TrailPage() {
 
       <div className="trail__layout">
         <div className="trail__main">
-          <TrailMapLazy route={trail.route} highlight={highlight} label={`Map of ${trail.name}`} />
+          <TrailMap route={trail.route} highlight={highlight} label={`Map of ${trail.name}`} />
 
           <section className="panel" aria-labelledby="elevation-heading">
             <h2 id="elevation-heading">Elevation</h2>
